@@ -1,3 +1,0 @@
-tcod==12.2.0
-pyinstaller==4.3
-pypiwin32; sys_platform=="win32"
