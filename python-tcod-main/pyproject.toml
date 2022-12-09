@@ -1,0 +1,39 @@
+[build-system]
+requires = [
+    "setuptools==60.8.2",
+    "wheel>=0.37.1",
+    "cffi>=1.15",
+    "pycparser>=2.14",
+    "pcpp==1.30",
+    "requests>=2.28.1",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 120
+target-version = ["py37"]
+
+[tool.isort]
+profile = "black"
+py_version = "37"
+skip_gitignore = true
+line_length = 120
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+required_plugins = ["pytest-cov"]
+testpaths = ["tcod/", "tests/", "docs/"]
+addopts = [
+    "--doctest-modules",
+    "--doctest-glob='*.rst'",
+    "--cov=tcod",
+    "--capture=sys",
+    "--ignore=tcod/__pyinstaller",
+]
+log_file_level = "DEBUG"
+faulthandler_timeout = 5
+filterwarnings = [
+    "ignore::DeprecationWarning:tcod.libtcodpy",
+    "ignore::PendingDeprecationWarning:tcod.libtcodpy",
+    "ignore:This class may perform poorly and is no longer needed.::tcod.map",
+]
