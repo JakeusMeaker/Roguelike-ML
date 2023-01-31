@@ -108,8 +108,8 @@ class MainGameEventHandler(EventHandler):
 
         elif key == tcod.event.K_ESCAPE:
             action = EscapeAction(player)
-        elif key == tcod.event.K_v:
-            self.engine.event_handler = HistoryViewer(self.engine)
+        # elif key == tcod.event.K_v:
+            # self.engine.event_handler = HistoryViewer(self.engine)
 
         # No valid key was pressed
         return action
@@ -177,13 +177,14 @@ class HistoryViewer(EventHandler):
 
     def env_keydown(self, event: tcod.event.KeyDown) -> None:
         # Fancy conditional movement to make it feel right.
+        # Fancy conditional movement to make it feel right.
         if event.sym in CURSOR_Y_KEYS:
             adjust = CURSOR_Y_KEYS[event.sym]
             if adjust < 0 and self.cursor == 0:
-                # Only move from the top to the bottom when you're on the edge
+                # Only move from the top to the bottom when you're on the edge.
                 self.cursor = self.log_length - 1
             elif adjust > 0 and self.cursor == self.log_length - 1:
-                # Same with top movement
+                # Same with bottom to top movement.
                 self.cursor = 0
             else:
                 # Otherwise move while staying clamped to the bounds of the history log.
@@ -191,6 +192,6 @@ class HistoryViewer(EventHandler):
         elif event.sym == tcod.event.K_HOME:
             self.cursor = 0  # Move directly to the top message.
         elif event.sym == tcod.event.K_END:
-            self.cursor = self.log_length - 1  # Move directly to the last message
+            self.cursor = self.log_length - 1  # Move directly to the last message.
         else:  # Any other key moves back to the main game state.
             self.engine.event_handler = MainGameEventHandler(self.engine)
