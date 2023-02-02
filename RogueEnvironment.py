@@ -1,4 +1,5 @@
 import gym
+import numpy
 from gym import spaces
 from gym.utils import seeding
 from typing import Optional, Union
@@ -9,6 +10,8 @@ import tcod
 import actions
 import entity_factories
 import copy
+
+import tile_types
 from procgen import generate_dungeon
 
 MOVE_DIRS = [
@@ -112,11 +115,16 @@ class RogueEnv(gym.Env):
         #x = np.array(obs, dtype=np.float32)
         #return x
 
-        x = np.array([[self.engine.player.x, self.engine.player.y] + [0] * (80*50) ], dtype=np.float32)
+        # x = np.array([[self.engine.player.x, self.engine.player.y] + [0] * (80*50) ], dtype=np.float32)
+
+        visibletiles = np.empty((80 * 43) * 2, dtype=tile_types.tile_dt)
 
         for x in range(self.engine.game_map.width):
             for y in range(self.engine.game_map.height):
-                x[ 2 + (x * self.map_height + y ) ] = int(self.engine.game_map.tiles[y][x].walkable)
+                numpy.append(visibletiles, self.engine.game_map.tiles[y][x])
+                # x[ 2 + (x * self.map_height + y ) ] = int(self.engine.game_map.tiles[y][x].walkable)
+
+        x = np.array([[self.engine.player.x, self.engine.player.y] + visibletiles], dtype=np.float32)
 
         #print(self.np_random.uniform(low=0, high=255, size=(2,)))
         return x
