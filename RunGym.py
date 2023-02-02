@@ -2,25 +2,34 @@
 import RogueEnvironment
 
 # it should be in the registry now
+import pandas as pd
 import gym
 from stable_baselines3 import PPO,DQN
 print(gym.envs.registry)
 env = gym.make('RogueLearning-v0')
 
-print("training...")
-model = DQN("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=10000)
+#print("training...")
+#model = DQN("MlpPolicy", env, verbose=1)
+#model.learn(total_timesteps=100000)
+#model.save("models/dqn_rogue_v1")
 
+model = DQN.load("models/dqn_rogue_v0")
 print("running eval...")
 steps = 0
-observation = env.reset()
-for _ in range(100000):
-    action, states_ = model.predict(observation)
-    observation, reward, terminated, info = env.step(action[0])
-    steps += 1
-    env.render()
-    if terminated:
-        observation = env.reset()
-        print("died after: {} steps".format(steps))
-        steps = 0
+
+for _ in range(10):
+    dead = False
+    observation = env.reset()
+    while not dead:
+        action, states_ = model.predict(observation)
+        observation, reward, terminated, info = env.step(action)
+        steps += 1
+        env.render()
+        if terminated:
+            observation = env.reset()
+            dead = True
+            print("died after: {} steps".format(steps))
+            steps = 0
 env.close()
+
+# observations_df = pd.DataFrame(model.)

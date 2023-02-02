@@ -1,0 +1,5 @@
+Added movement, ran but not interesting results
+gave penalty for movement to encourage exploration, didnt improve
+have added a view of the game map movement continued but still no interesting results
+Gave a view of the visible map tiles, still stuck to one area and didn't explore much
+created a reward delta for explored tiles to encourage movement, created better results including the agent finding and killing an enemy

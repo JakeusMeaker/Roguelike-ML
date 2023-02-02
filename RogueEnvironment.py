@@ -49,36 +49,27 @@ class RogueEnv(gym.Env):
 
         self.seed()
 
-        tileset = tcod.tileset.load_tilesheet(
-            "dejavu10x10.png", 32, 8, tcod.tileset.CHARMAP_TCOD
-        )
+        self.context = None
+        self.root_console = None
 
-        self.context = tcod.context.new_terminal(
-            self.screen_width,
-            self.screen_height,
-            tileset=tileset,
-            title="Yet Another Roguelike Tutorial",
-            vsync=True,
-        )
-
-        self.root_console = tcod.Console(self.screen_width, self.screen_height, order="F")
 
         tilesmax = np.array(
             [
                 255
-            ] * (2 + (80*50)),
+            ] * (2 + (80*43)),
             dtype=np.float32
         )
 
         tilesmin = np.array(
             [
                 0
-            ] * (2 + (80*50)),
+            ] * (2 + (80*43)),
             dtype=np.float32
         )
 
         self.observation_space = spaces.Box(tilesmin, tilesmax, dtype=np.float32)
         self.action_space = spaces.Discrete(8)
+        self.tiles_explored = 0
 
     def step(self, action):
         """"""
@@ -91,13 +82,16 @@ class RogueEnv(gym.Env):
         self.engine.handle_enemy_turns()
         self.engine.update_fov()  # Update the FOV before the players next action.
 
-        return self.generate_obs(), -1, self.engine.player.fighter.hp == 0, {}
+        explored = sum(sum(self.engine.game_map.explored))
+        explored_delta = explored - self.tiles_explored
+        self.tiles_explored = explored
+
+        return self.generate_obs(), explored_delta, self.engine.player.fighter.hp == 0, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)
 
         self.engine = engine.Engine(player=player)
-
         self.engine.game_map = generate_dungeon(
             max_rooms=self.max_rooms,
             room_min_size=self.room_min_size,
@@ -108,6 +102,8 @@ class RogueEnv(gym.Env):
             engine=self.engine
         )
         self.engine.update_fov()
+        self.tiles_explored = sum(sum( self.engine.game_map.explored))
+
         return self.generate_obs()
 
     def generate_obs(self):
@@ -117,19 +113,40 @@ class RogueEnv(gym.Env):
 
         # x = np.array([[self.engine.player.x, self.engine.player.y] + [0] * (80*50) ], dtype=np.float32)
 
-        visibletiles = np.empty((80 * 43) * 2, dtype=tile_types.tile_dt)
+        visibletiles = np.empty(80 * 43 + 2, dtype=np.float32)
 
         for x in range(self.engine.game_map.width):
             for y in range(self.engine.game_map.height):
-                numpy.append(visibletiles, self.engine.game_map.tiles[y][x])
+                if self.engine.game_map.explored[x][y]:
+                    visibletiles[x * self.engine.game_map.height + y] = int(self.engine.game_map.tiles[x][y][0])
+                else:
+                    visibletiles[x * self.engine.game_map.height + y] = 2
+                # numpy.append(visibletiles, self.engine.game_map.tiles[x][y])
                 # x[ 2 + (x * self.map_height + y ) ] = int(self.engine.game_map.tiles[y][x].walkable)
 
-        x = np.array([[self.engine.player.x, self.engine.player.y] + visibletiles], dtype=np.float32)
+        visibletiles[80 * 43] = self.engine.player.x
+        visibletiles[80 * 43 + 1] = self.engine.player.y
+        x = np.array(visibletiles, dtype=np.float32)
 
         #print(self.np_random.uniform(low=0, high=255, size=(2,)))
         return x
 
     def render(self, mode="human"):
+        if self.root_console is None:
+            tileset = tcod.tileset.load_tilesheet(
+                "dejavu10x10.png", 32, 8, tcod.tileset.CHARMAP_TCOD
+            )
+
+            self.context = tcod.context.new_terminal(
+                self.screen_width,
+                self.screen_height,
+                tileset=tileset,
+                title="Yet Another Roguelike Tutorial",
+                vsync=True,
+            )
+
+            self.root_console = tcod.Console(self.screen_width, self.screen_height, order="F")
+
         self.root_console.clear()
         self.engine.event_handler.on_render(console=self.root_console)
         self.context.present(self.root_console)
