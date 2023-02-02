@@ -9,11 +9,11 @@ print(gym.envs.registry)
 env = gym.make('RogueLearning-v0')
 
 #print("training...")
-#model = DQN("MlpPolicy", env, verbose=1)
+#model = PPO("MlpPolicy", env, verbose=1)
 #model.learn(total_timesteps=100000)
-#model.save("models/dqn_rogue_v1")
+#model.save("models/ppo_rogue_v1")
 
-model = DQN.load("models/dqn_rogue_v0")
+model = DQN.load("models/dqn_rogue_v1")
 print("running eval...")
 steps = 0
 
