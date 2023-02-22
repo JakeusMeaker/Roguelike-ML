@@ -20,10 +20,10 @@ MOVE_DIRS = [
     (-1, 0),
     (0, 1),
     (1, 0),
-    #(-1, -1),
-    #(1, -1),
-    #(-1, 1),
-    #(1, 1)
+    (-1, -1),
+    (1, -1),
+    (-1, 1),
+    (1, 1)
 ]
 
 
@@ -55,25 +55,27 @@ class RogueEnv(gym.Env):
 
         tilesmax = np.array(
             [
-                255
-            ] * (2 + (80*43)),
+                2
+            ] * (11 + (80*43)),
             dtype=np.float32
         )
 
         tilesmin = np.array(
             [
                 0
-            ] * (2 + (80*43)),
+            ] * (11 + (80*43)),
             dtype=np.float32
         )
 
         self.observation_space = spaces.Box(tilesmin, tilesmax, dtype=np.float32)
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(8)
         self.tiles_explored = 0
 
     def step(self, action):
         """"""
         # TODO take action, generate reward and sucessor state
+
+        print(action)
         assert self.action_space.contains(action), type(action)
 
         action = actions.BumpAction(self.engine.player, *MOVE_DIRS[action])
@@ -82,12 +84,19 @@ class RogueEnv(gym.Env):
         self.engine.handle_enemy_turns()
         self.engine.update_fov()  # Update the FOV before the players next action.
 
-        healthdelta = self.engine.player.fighter.max_hp - self.engine.player.fighter.hp
+        #healthdelta = self.engine.player.fighter.max_hp - self.engine.player.fighter.hp
 
         explored = sum(sum(self.engine.game_map.explored))
         explored_delta = explored - self.tiles_explored
 
-        reward = explored_delta - healthdelta
+        reward = explored_delta
+
+        for x_ in [-1, 0, 1]:
+            for y_ in [-1, 0, 1]:
+                actornearby = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_)
+                if actornearby is not None and not actornearby.is_alive:
+                    reward += 100
+        reward = reward - 1
 
         return self.generate_obs(), reward, self.engine.player.fighter.hp == 0, {}
 
@@ -116,20 +125,30 @@ class RogueEnv(gym.Env):
 
         # x = np.array([[self.engine.player.x, self.engine.player.y] + [0] * (80*50) ], dtype=np.float32)
 
-        visibletiles = np.empty(80 * 43 + 2, dtype=np.float32)
+        observations = np.empty(80 * 43 + 11, dtype=np.float32)
 
+        # Adds the visible tiles to the observations
         for x in range(self.engine.game_map.width):
             for y in range(self.engine.game_map.height):
                 if self.engine.game_map.explored[x][y]:
-                    visibletiles[x * self.engine.game_map.height + y] = int(self.engine.game_map.tiles[x][y][0])
+                    observations[x * self.engine.game_map.height + y] = int(self.engine.game_map.tiles[x][y][0])
                 else:
-                    visibletiles[x * self.engine.game_map.height + y] = 2
-                # numpy.append(visibletiles, self.engine.game_map.tiles[x][y])
+                    observations[x * self.engine.game_map.height + y] = 2
+                # numpy.append(observations, self.engine.game_map.tiles[x][y])
                 # x[ 2 + (x * self.map_height + y ) ] = int(self.engine.game_map.tiles[y][x].walkable)
 
-        visibletiles[80 * 43] = self.engine.player.x
-        visibletiles[80 * 43 + 1] = self.engine.player.y
-        x = np.array(visibletiles, dtype=np.float32)
+        observations[80 * 43] = self.engine.player.x / self.map_width
+        observations[80 * 43 + 1] = self.engine.player.y / self.map_height
+
+        index = 80 * 43 + 1
+        for x_ in [-1, 0, 1]:
+            for y_ in [-1, 0, 1]:
+                observations[index] = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_) is not None
+                index += 1
+
+        observations[80 * 43 + 10] = self.engine.player.fighter.hp / 30
+
+        x = np.array(observations, dtype=np.float32)
 
         #print(self.np_random.uniform(low=0, high=255, size=(2,)))
         return x

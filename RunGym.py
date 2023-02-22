@@ -4,17 +4,17 @@ import RogueEnvironment
 # it should be in the registry now
 import pandas as pd
 import gym
-from stable_baselines3 import PPO,DQN
+from stable_baselines3 import PPO, DQN, A2C
 print(gym.envs.registry)
 env = gym.make('RogueLearning-v0')
 
-#print("training...")
-#model = DQN("MlpPolicy", env, verbose=1)
-#model.learn(total_timesteps=100000)
-#model.save("models/DQN_rogue_v3")
+print("training...")
+model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
+model.learn(total_timesteps=10000, tb_log_name="DQN")
+model.save("models/DQN_TensorRogue_v1")
 
-model = DQN.load("models/DQN_rogue_v3.zip")
-print("running eval...")
+#model = DQN.load("models/DQN_rogue_v3.zip")
+#print("running eval...")
 steps = 0
 
 for _ in range(10):
@@ -22,14 +22,14 @@ for _ in range(10):
     observation = env.reset()
     while not dead:
         action, states_ = model.predict(observation)
+        print(observation)
         observation, reward, terminated, info = env.step(action)
         steps += 1
-        #env.render()
+        env.render()
         if terminated:
             observation = env.reset()
             dead = True
             print("died after: {} steps".format(steps))
             steps = 0
-#env.close()
+env.close()
 
-# observations_df = pd.DataFrame(model.)
