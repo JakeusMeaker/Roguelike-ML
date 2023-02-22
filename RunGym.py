@@ -9,11 +9,11 @@ print(gym.envs.registry)
 env = gym.make('RogueLearning-v0')
 
 #print("training...")
-#model = PPO("MlpPolicy", env, verbose=1)
+#model = DQN("MlpPolicy", env, verbose=1)
 #model.learn(total_timesteps=100000)
-#model.save("models/ppo_rogue_v1")
+#model.save("models/DQN_rogue_v3")
 
-model = DQN.load("models/dqn_rogue_v1")
+model = DQN.load("models/DQN_rogue_v3.zip")
 print("running eval...")
 steps = 0
 
@@ -24,12 +24,12 @@ for _ in range(10):
         action, states_ = model.predict(observation)
         observation, reward, terminated, info = env.step(action)
         steps += 1
-        env.render()
+        #env.render()
         if terminated:
             observation = env.reset()
             dead = True
             print("died after: {} steps".format(steps))
             steps = 0
-env.close()
+#env.close()
 
 # observations_df = pd.DataFrame(model.)

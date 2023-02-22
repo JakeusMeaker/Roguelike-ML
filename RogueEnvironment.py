@@ -20,10 +20,10 @@ MOVE_DIRS = [
     (-1, 0),
     (0, 1),
     (1, 0),
-    (-1, -1),
-    (1, -1),
-    (-1, 1),
-    (1, 1)
+    #(-1, -1),
+    #(1, -1),
+    #(-1, 1),
+    #(1, 1)
 ]
 
 
@@ -68,7 +68,7 @@ class RogueEnv(gym.Env):
         )
 
         self.observation_space = spaces.Box(tilesmin, tilesmax, dtype=np.float32)
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(4)
         self.tiles_explored = 0
 
     def step(self, action):
@@ -82,11 +82,14 @@ class RogueEnv(gym.Env):
         self.engine.handle_enemy_turns()
         self.engine.update_fov()  # Update the FOV before the players next action.
 
+        healthdelta = self.engine.player.fighter.max_hp - self.engine.player.fighter.hp
+
         explored = sum(sum(self.engine.game_map.explored))
         explored_delta = explored - self.tiles_explored
-        self.tiles_explored = explored
 
-        return self.generate_obs(), explored_delta, self.engine.player.fighter.hp == 0, {}
+        reward = explored_delta - healthdelta
+
+        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)
