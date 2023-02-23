@@ -84,10 +84,9 @@ class RogueEnv(gym.Env):
         self.engine.handle_enemy_turns()
         self.engine.update_fov()  # Update the FOV before the players next action.
 
-        #healthdelta = self.engine.player.fighter.max_hp - self.engine.player.fighter.hp
-
         explored = sum(sum(self.engine.game_map.explored))
         explored_delta = explored - self.tiles_explored
+        self.tiles_explored = explored
 
         reward = explored_delta
 
@@ -95,8 +94,9 @@ class RogueEnv(gym.Env):
             for y_ in [-1, 0, 1]:
                 actornearby = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_)
                 if actornearby is not None and not actornearby.is_alive:
-                    reward += 100
-        reward = reward - 1
+                    reward += 1000
+        reward = reward - (self.previoushealth - self.engine.player.fighter.hp) - 1
+        self.previoushealth = self.engine.player.fighter.hp
 
         return self.generate_obs(), reward, self.engine.player.fighter.hp == 0, {}
 
@@ -115,6 +115,7 @@ class RogueEnv(gym.Env):
         )
         self.engine.update_fov()
         self.tiles_explored = sum(sum( self.engine.game_map.explored))
+        self.previoushealth = player.fighter.max_hp
 
         return self.generate_obs()
 
