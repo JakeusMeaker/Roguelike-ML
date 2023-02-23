@@ -75,7 +75,7 @@ class RogueEnv(gym.Env):
         """"""
         # TODO take action, generate reward and sucessor state
 
-        print(action)
+        #print(action)
         assert self.action_space.contains(action), type(action)
 
         action = actions.BumpAction(self.engine.player, *MOVE_DIRS[action])

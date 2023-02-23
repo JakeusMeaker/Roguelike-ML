@@ -8,13 +8,13 @@ from stable_baselines3 import PPO, DQN, A2C
 print(gym.envs.registry)
 env = gym.make('RogueLearning-v0')
 
-print("training...")
-model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
-model.learn(total_timesteps=10000, tb_log_name="DQN")
-model.save("models/DQN_TensorRogue_v1")
+#print("training...")
+#model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
+#model.learn(total_timesteps=2000000, tb_log_name="DQN")
+#model.save("models/DQN_TensorRogue_v4")
 
-#model = DQN.load("models/DQN_rogue_v3.zip")
-#print("running eval...")
+model = DQN.load("models/DQN_TensorRogue_v4")
+print("running eval...")
 steps = 0
 
 for _ in range(10):
@@ -22,7 +22,7 @@ for _ in range(10):
     observation = env.reset()
     while not dead:
         action, states_ = model.predict(observation)
-        print(observation)
+        #print(observation)
         observation, reward, terminated, info = env.step(action)
         steps += 1
         env.render()
