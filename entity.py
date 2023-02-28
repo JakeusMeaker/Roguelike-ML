@@ -39,7 +39,7 @@ class Entity:
         self.blocks_movement = blocks_movement
         self.render_order = render_order
         if parent:
-            # If parent isn't provided now the nit will be set later
+            # If parent isn't provided now then it will be set later
             self.parent = parent
             parent.entities.add(self)
 

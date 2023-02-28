@@ -93,7 +93,8 @@ def generate_dungeon(
 
     rooms: List[RectangularRoom] = []
 
-    random.seed(42)
+    #for DQN to not be sad
+    #random.seed(42)
 
     for r in range(max_rooms):
         room_width = random.randint(room_min_size, room_max_size)
