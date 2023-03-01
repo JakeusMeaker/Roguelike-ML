@@ -43,7 +43,7 @@ class RogueEnv(gym.Env):
         self.room_min_size = 6
         self.max_rooms = 30
 
-        self.max_monsters_per_room = 2
+        self.max_monsters_per_room = 0
 
         self.engine = None
 
@@ -52,18 +52,20 @@ class RogueEnv(gym.Env):
         self.context = None
         self.root_console = None
 
+        self.steps = 0
+
 
         tilesmax = np.array(
             [
-                2
-            ] * (11 + (80*43)),
+                1
+            ] * (12 + (80*43)),
             dtype=np.float32
         )
 
         tilesmin = np.array(
             [
-                0
-            ] * (11 + (80*43)),
+                -1
+            ] * (12 + (80*43)),
             dtype=np.float32
         )
 
@@ -74,6 +76,7 @@ class RogueEnv(gym.Env):
     def step(self, action):
         """"""
         # TODO take action, generate reward and sucessor state
+        self.steps += 1
 
         #print(action)
         assert self.action_space.contains(action), type(action)
@@ -98,7 +101,7 @@ class RogueEnv(gym.Env):
         reward = reward - (self.previoushealth - self.engine.player.fighter.hp) - 1
         self.previoushealth = self.engine.player.fighter.hp
 
-        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0, {}
+        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 100, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)
@@ -116,6 +119,7 @@ class RogueEnv(gym.Env):
         self.engine.update_fov()
         self.tiles_explored = sum(sum( self.engine.game_map.explored))
         self.previoushealth = player.fighter.max_hp
+        self.steps = 0
 
         return self.generate_obs()
 
@@ -126,15 +130,17 @@ class RogueEnv(gym.Env):
 
         # x = np.array([[self.engine.player.x, self.engine.player.y] + [0] * (80*50) ], dtype=np.float32)
 
-        observations = np.empty(80 * 43 + 11, dtype=np.float32)
+        observations = np.empty(80 * 43 + 12, dtype=np.float32)
 
         # Adds the visible tiles to the observations
+        unexplored = 0
         for x in range(self.engine.game_map.width):
             for y in range(self.engine.game_map.height):
                 if self.engine.game_map.explored[x][y]:
                     observations[x * self.engine.game_map.height + y] = int(self.engine.game_map.tiles[x][y][0])
                 else:
-                    observations[x * self.engine.game_map.height + y] = 2
+                    observations[x * self.engine.game_map.height + y] = -1
+                    unexplored += 1
                 # numpy.append(observations, self.engine.game_map.tiles[x][y])
                 # x[ 2 + (x * self.map_height + y ) ] = int(self.engine.game_map.tiles[y][x].walkable)
 
@@ -148,6 +154,7 @@ class RogueEnv(gym.Env):
                 index += 1
 
         observations[80 * 43 + 10] = self.engine.player.fighter.hp / 30
+        observations[80 * 43 + 11] = unexplored / (80 * 43)
 
         x = np.array(observations, dtype=np.float32)
 

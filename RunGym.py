@@ -5,9 +5,16 @@ import RogueEnvironment
 import pandas as pd
 import gym
 from stable_baselines3 import PPO, DQN, A2C
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback, ProgressBarCallback
+from stable_baselines3.common.monitor import Monitor
+import numpy as np
+
 print(gym.envs.registry)
 env = gym.make('RogueLearning-v0')
+eval_env = gym.make('RogueLearning-v0')
+
+eval_callback = EvalCallback(Monitor(eval_env), best_model_save_path="./models/tensorlogs", log_path="./models/tensorlogs",
+                             eval_freq=5000, deterministic=True, render=True)
 
 # Save a checkpoint every 1000 steps
 checkpoint_callback = CheckpointCallback(
@@ -18,31 +25,32 @@ checkpoint_callback = CheckpointCallback(
 )
 
 print("training...")
-#model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", exploration_fraction=10, exploration_initial_eps=0.2, learning_starts=100)
-#model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", learning_rate=0.8, gamma=0.5, n_steps=1000, n_epochs=20, ent_coef=100, vf_coef=100)
-#model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
-#model.learn(total_timesteps=50000, tb_log_name="A2C", callback=checkpoint_callback)
-#model.save("models/A2C_TensorRogueDeterministic_v2")
+model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", exploration_fraction=0.8, exploration_initial_eps=0.8, exploration_final_eps=0.2,  learning_starts=500,)
+# model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", learning_rate=0.8, gamma=0.5, n_steps=1000, n_epochs=20, ent_coef=100, vf_coef=100)
+# model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
+model.learn(total_timesteps=500000, tb_log_name="DQN", callback=eval_callback, progress_bar=True)
+model.save("models/DQN_TensorRogueDeterministic_v8")
 
-model = A2C.load("models/A2C_TensorRogueDeterministic_v2.zip")
+#model = DQN.load("models/DQN_TensorRogueDeterministic_v7.zip", env)
 print("running eval...")
 steps = 0
 
 for _ in range(10):
     dead = False
     observation = env.reset()
+    states_ = None
+    episode_starts = np.ones(1, dtype=bool)
     while not dead:
-        action, states_ = model.predict(observation, deterministic=True)
-        #print(observation)
+        action, states_ = model.predict(observation, state=states_, episode_start=episode_starts, deterministic=True)
+        # print(observation)
         observation, reward, terminated, info = env.step(action)
         print(reward)
         steps += 1
+        episode_starts[0] = terminated
         env.render()
-        model.set_env(env)
         if terminated:
             observation = env.reset()
             dead = True
             print("died after: {} steps".format(steps))
             steps = 0
 env.close()
-

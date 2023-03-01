@@ -8,3 +8,5 @@ giving view of entities in the tiles adjacent
 tried to add big reward for killing enemy nearby and took out heath penalty to encourage violence
 reduced how many steps of the model to collect transitions for before learning starts
 reduced the exploration fraction and the exploration initial eps to see what behaviour occurs
+Given an observation of unexplored tiles and changed the reward to a minus figure. -1 good, 0 okay, 1 bad (I think)
+taken away enemies to see if agent can find a soloution to the maze problem
