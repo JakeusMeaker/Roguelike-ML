@@ -25,13 +25,13 @@ checkpoint_callback = CheckpointCallback(
 )
 
 print("training...")
-model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", exploration_fraction=0.8, exploration_initial_eps=0.8, exploration_final_eps=0.2,  learning_starts=500,)
+model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", exploration_fraction=0.8, exploration_initial_eps=0.8, exploration_final_eps=0.2,  learning_starts=1000,)
 # model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", learning_rate=0.8, gamma=0.5, n_steps=1000, n_epochs=20, ent_coef=100, vf_coef=100)
 # model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
 model.learn(total_timesteps=500000, tb_log_name="DQN", callback=eval_callback, progress_bar=True)
-model.save("models/DQN_TensorRogueDeterministic_v8")
+model.save("models/DQN_TensorRogueDeterministic_v10")
 
-#model = DQN.load("models/DQN_TensorRogueDeterministic_v7.zip", env)
+#model = DQN.load("models/DQN_TensorRogueDeterministic_v10.zip", env)
 print("running eval...")
 steps = 0
 

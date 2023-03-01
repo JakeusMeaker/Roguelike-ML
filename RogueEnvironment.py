@@ -20,10 +20,10 @@ MOVE_DIRS = [
     (-1, 0),
     (0, 1),
     (1, 0),
-    (-1, -1),
-    (1, -1),
-    (-1, 1),
-    (1, 1)
+    #(-1, -1),
+    #(1, -1),
+    #(-1, 1),
+    #(1, 1)
 ]
 
 
@@ -70,7 +70,7 @@ class RogueEnv(gym.Env):
         )
 
         self.observation_space = spaces.Box(tilesmin, tilesmax, dtype=np.float32)
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(4)
         self.tiles_explored = 0
 
     def step(self, action):
@@ -101,7 +101,7 @@ class RogueEnv(gym.Env):
         reward = reward - (self.previoushealth - self.engine.player.fighter.hp) - 1
         self.previoushealth = self.engine.player.fighter.hp
 
-        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 100, {}
+        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 150, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)
