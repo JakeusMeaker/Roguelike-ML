@@ -10,3 +10,6 @@ reduced how many steps of the model to collect transitions for before learning s
 reduced the exploration fraction and the exploration initial eps to see what behaviour occurs
 Given an observation of unexplored tiles and changed the reward to a minus figure. -1 good, 0 okay, 1 bad (I think)
 taken away enemies to see if agent can find a soloution to the maze problem
+set the steps to be redused by the exploration delta so htat the agent can live longer and explore more if they are more successful
+Long corridors seem to encourage the behaviour of repeatedly going in the same direction
+took away the -1 to reward as with this the reward could never be positive dues to the penatly of not exploring
