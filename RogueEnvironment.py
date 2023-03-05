@@ -77,7 +77,6 @@ class RogueEnv(gym.Env):
         """"""
         # TODO take action, generate reward and sucessor state
 
-
         #print(action)
         assert self.action_space.contains(action), type(action)
 
@@ -96,16 +95,20 @@ class RogueEnv(gym.Env):
         self.steps += 1
         if explored_delta != 0:
             self.steps -= explored_delta
+        else:
+            reward = -1
 
-        for x_ in [-1, 0, 1]:
-            for y_ in [-1, 0, 1]:
-                actornearby = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_)
-                if actornearby is not None and not actornearby.is_alive:
-                    reward += 1000
-        reward = reward - (self.previoushealth - self.engine.player.fighter.hp) # - 1
-        self.previoushealth = self.engine.player.fighter.hp
+        #for x_ in [-1, 0, 1]:
+        #    for y_ in [-1, 0, 1]:
+        #       actornearby = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_)
+        #       if actornearby is not None and not actornearby.is_alive:
+        #           reward += 1000
+        #reward = reward - (self.previoushealth - self.engine.player.fighter.hp) # - 1
 
-        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 30, {}
+        #if self.engine.game_map.tiles[action.dx][action.dy][0]:
+        #    reward = reward - 1
+
+        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 20, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)

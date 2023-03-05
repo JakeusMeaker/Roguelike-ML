@@ -29,10 +29,10 @@ model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/",
 # model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", learning_rate=0.8, gamma=0.5, n_steps=1000, n_epochs=20, ent_coef=100, vf_coef=100)
 # model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/")
 model.learn(total_timesteps=100000, tb_log_name="DQN", callback=eval_callback, progress_bar=True)
-model.save("models/DQN_TensorRogueDeterministic_v13")
+model.save("models/DQN_TensorRogueDeterministic_v16")
 
 #model = DQN.load("models/DQN_TensorRogueDeterministic_v13.zip", env)
-model = DQN.load("models/tensorlogs/best_model.zip", env)
+#model = DQN.load("models/tensorlogs/best_model.zip", env)
 print("running eval...")
 steps = 0
 
