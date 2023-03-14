@@ -1,8 +1,6 @@
 import gym
-import numpy
 from gym import spaces
 from gym.utils import seeding
-from typing import Optional, Union
 
 import numpy as np
 import engine
@@ -11,7 +9,6 @@ import actions
 import entity_factories
 import copy
 
-import tile_types
 from procgen import generate_dungeon
 
 MOVE_DIRS = [
@@ -19,11 +16,7 @@ MOVE_DIRS = [
     (0, -1),
     (-1, 0),
     (0, 1),
-    (1, 0),
-    #(-1, -1),
-    #(1, -1),
-    #(-1, 1),
-    #(1, 1)
+    (1, 0)
 ]
 
 
@@ -32,7 +25,7 @@ class RogueEnv(gym.Env):
         "render.modes": []
     }
 
-    def __init__(self):
+    def __init__(self):  # Creates and initializes the environment
         self.screen_width = 80
         self.screen_height = 50
 
@@ -47,13 +40,10 @@ class RogueEnv(gym.Env):
 
         self.engine = None
 
-        self.seed()
-
         self.context = None
         self.root_console = None
 
         self.steps = 0
-
 
         tilesmax = np.array(
             [
@@ -74,41 +64,29 @@ class RogueEnv(gym.Env):
         self.tiles_explored = 0
 
     def step(self, action):
-        """"""
-        # TODO take action, generate reward and sucessor state
-
-        #print(action)
         assert self.action_space.contains(action), type(action)
 
         action = actions.BumpAction(self.engine.player, *MOVE_DIRS[action])
         action.perform()
 
-        self.engine.handle_enemy_turns()
         self.engine.update_fov()  # Update the FOV before the players next action.
 
+        # Counts the number of tiles explored this turn and compares it to the last turn and generates a delta which is
+        # given to the model as a reward. Intended to encourage and reward exploration
         explored = sum(sum(self.engine.game_map.explored))
         explored_delta = explored - self.tiles_explored
         self.tiles_explored = explored
-
         reward = explored_delta
 
+        # Rewards the model for staying alive by allowing it to remain alive for longer. The longer it stays alive then
+        # the more reward it can get
         self.steps += 1
         if explored_delta != 0:
             self.steps -= explored_delta
         else:
             reward = -1
 
-        #for x_ in [-1, 0, 1]:
-        #    for y_ in [-1, 0, 1]:
-        #       actornearby = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_)
-        #       if actornearby is not None and not actornearby.is_alive:
-        #           reward += 1000
-        #reward = reward - (self.previoushealth - self.engine.player.fighter.hp) # - 1
-
-        #if self.engine.game_map.tiles[action.dx][action.dy][0]:
-        #    reward = reward - 1
-
-        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 20, {}
+        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 5, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)
@@ -125,18 +103,11 @@ class RogueEnv(gym.Env):
         )
         self.engine.update_fov()
         self.tiles_explored = sum(sum( self.engine.game_map.explored))
-        self.previoushealth = player.fighter.max_hp
         self.steps = 0
 
         return self.generate_obs()
 
     def generate_obs(self):
-        #obs = self.np_random.uniform(low=0.0, high=255.0, size=(2,))
-        #x = np.array(obs, dtype=np.float32)
-        #return x
-
-        # x = np.array([[self.engine.player.x, self.engine.player.y] + [0] * (80*50) ], dtype=np.float32)
-
         observations = np.empty(80 * 43 + 12, dtype=np.float32)
 
         # Adds the visible tiles to the observations
@@ -148,24 +119,15 @@ class RogueEnv(gym.Env):
                 else:
                     observations[x * self.engine.game_map.height + y] = -1
                     unexplored += 1
-                # numpy.append(observations, self.engine.game_map.tiles[x][y])
-                # x[ 2 + (x * self.map_height + y ) ] = int(self.engine.game_map.tiles[y][x].walkable)
 
+        # Determines the players current position for the observations
         observations[80 * 43] = self.engine.player.x / self.map_width
         observations[80 * 43 + 1] = self.engine.player.y / self.map_height
 
-        index = 80 * 43 + 1
-        for x_ in [-1, 0, 1]:
-            for y_ in [-1, 0, 1]:
-                observations[index] = self.engine.game_map.get_actor_at_location(self.engine.player.x + x_, self.engine.player.y + y_) is not None
-                index += 1
-
-        observations[80 * 43 + 10] = self.engine.player.fighter.hp / 30
-        observations[80 * 43 + 11] = unexplored / (80 * 43)
+        # Adds the unexplored tiles to the observations
+        observations[80 * 43 + 2] = unexplored / (80 * 43)
 
         x = np.array(observations, dtype=np.float32)
-
-        #print(self.np_random.uniform(low=0, high=255, size=(2,)))
         return x
 
     def render(self, mode="human"):
@@ -178,7 +140,7 @@ class RogueEnv(gym.Env):
                 self.screen_width,
                 self.screen_height,
                 tileset=tileset,
-                title="Yet Another Roguelike Tutorial",
+                title="Roguelike ML",
                 vsync=True,
             )
 
@@ -187,10 +149,6 @@ class RogueEnv(gym.Env):
         self.root_console.clear()
         self.engine.event_handler.on_render(console=self.root_console)
         self.context.present(self.root_console)
-
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
 
 
 gym.envs.register(id='RogueLearning-v0', entry_point='RogueEnvironment:RogueEnv', )
