@@ -86,7 +86,7 @@ class RogueEnv(gym.Env):
         else:
             reward = -1
 
-        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 5, {}
+        return self.generate_obs(), reward, self.engine.player.fighter.hp == 0 or self.steps > 1, {}
 
     def reset(self):
         player = copy.deepcopy(entity_factories.player)

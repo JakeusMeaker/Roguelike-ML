@@ -14,4 +14,5 @@ set the steps to be redused by the exploration delta so htat the agent can live 
 Long corridors seem to encourage the behaviour of repeatedly going in the same direction
 took away the -1 to reward as with this the reward could never be positive dues to the penatly of not exploring
 have decreased the amount of steps it can remain alive whilst not exploring to punish non movement - can only stay alive 5 steps when not exploring
+reduced to 1 step as a lower number yielded good results
 

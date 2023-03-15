@@ -17,5 +17,5 @@ eval_callback = EvalCallback(Monitor(eval_env), best_model_save_path="./models/t
 print("training...")
 model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./models/tensorlogs/", exploration_fraction=0.8, exploration_initial_eps=0.8, exploration_final_eps=0.2,  learning_starts=1000,)
 model.learn(total_timesteps=100000, tb_log_name="DQN", callback=eval_callback)
-model.save("models/DQN_TensorRogueDeterministic_v17")
+model.save("models/DQN_TensorRogueDeterministic_v18")
 print("training complete.")
